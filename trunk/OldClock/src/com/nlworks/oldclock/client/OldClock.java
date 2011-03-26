@@ -3,10 +3,6 @@ package com.nlworks.oldclock.client;
 import java.util.LinkedList;
 
 import com.google.gwt.core.client.EntryPoint;
-import com.google.gwt.event.dom.client.HasMouseMoveHandlers;
-import com.google.gwt.event.dom.client.MouseMoveEvent;
-import com.google.gwt.event.dom.client.MouseMoveHandler;
-import com.google.gwt.event.shared.HandlerRegistration;
 import com.google.gwt.user.client.Timer;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.RootPanel;
@@ -18,12 +14,12 @@ import com.google.gwt.widgetideas.graphics.client.GWTCanvas;
  */
 public class OldClock implements EntryPoint {
 
-	Canvas canvas = new Canvas(1200, 1200);
+	GWTCanvas canvas = new GWTCanvas(1200, 1200);
 	Label fpslabel = new Label();
 	boolean decrament = false;
 
 	int n = 8;
-	public static final int delay = 1000;
+	public static final int delay = 200;
 
 	MyTime myTime;
 
@@ -39,16 +35,7 @@ public class OldClock implements EntryPoint {
 		Draw draw = new Draw();
 		draw.scheduleRepeating(10);
 
-		myTime = new MyTime(200, 00, 00, 05);
-
-
-		canvas.addMouseMoveHandler(new MouseMoveHandler() {
-
-			@Override
-			public void onMouseMove(MouseMoveEvent event) {
-				// System.out.println(event.getX() + " " + event.getY());
-			}
-		});
+		myTime = new MyTime(200, 00, 00, 8);
 
 		(new Timer() {
 
@@ -99,28 +86,29 @@ public class OldClock implements EntryPoint {
 			this.minutes = minutes;
 			this.seconds = seconds;
 
-			double x = 0;
+			double x = 20;
+			double y = 20;
 
-			numbers[0] = new NumberSegment(new Point(x, 5), days / 100);
+			numbers[0] = new NumberSegment(new Point(x, y), days / 100);
 			x += 55;
-			numbers[1] = new NumberSegment(new Point(x, 5), (days % 100) / 10);
+			numbers[1] = new NumberSegment(new Point(x, y), (days % 100) / 10);
 			x += 55;
-			numbers[2] = new NumberSegment(new Point(x, 5), days % 10);
-			x += 90;
+			numbers[2] = new NumberSegment(new Point(x, y), days % 10);
+			x += 120;
 
-			numbers[3] = new NumberSegment(new Point(x, 5), hours / 10);
+			numbers[3] = new NumberSegment(new Point(x, y), hours / 10);
 			x += 55;
-			numbers[4] = new NumberSegment(new Point(x, 5), hours % 10);
-			x += 90;
+			numbers[4] = new NumberSegment(new Point(x, y), hours % 10);
+			x += 120;
 
-			numbers[5] = new NumberSegment(new Point(x, 5), minutes / 10);
+			numbers[5] = new NumberSegment(new Point(x, y), minutes / 10);
 			x += 55;
-			numbers[6] = new NumberSegment(new Point(x, 5), minutes % 10);
-			x += 90;
+			numbers[6] = new NumberSegment(new Point(x, y), minutes % 10);
+			x += 120;
 
-			numbers[7] = new NumberSegment(new Point(x, 5), seconds / 10);
+			numbers[7] = new NumberSegment(new Point(x, y), seconds / 10);
 			x += 55;
-			numbers[8] = new NumberSegment(new Point(x, 5), seconds % 10);
+			numbers[8] = new NumberSegment(new Point(x, y), seconds % 10);
 
 			for (int i = 0; i < 9; i++)
 				addNumber(numbers[i]);
@@ -252,17 +240,15 @@ public class OldClock implements EntryPoint {
 			segments[6] = new Segment(6);
 			setGoodPosition();
 
-
 			prevNumber = 8;
 			newNumber = 8;
 
-			for (int i = 8; newNumber != number; i--)
-			{
+			for (int i = 8; newNumber != number; i--) {
 				setNumber(i);
-				for (int j=0; j < 7; j++)
+				for (int j = 0; j < 7; j++)
 					segments[j].completeAllAnimations();
 			}
-			
+
 			setNumber(number);
 		}
 
@@ -291,7 +277,7 @@ public class OldClock implements EntryPoint {
 
 			if (prevNumber == newNumber)
 				return;
-			
+
 			switch (newNumber) {
 				case 0:
 					switch (prevNumber) {
@@ -305,7 +291,7 @@ public class OldClock implements EntryPoint {
 							segments[5].addMoveTo(true, true);
 							segments[5].addMoveTo(false, true);
 							break;
-							
+
 						default:
 							System.out.println("Unknown number transition.  newNumber=" + newNumber + "  prevNumber=" + prevNumber);
 					}
@@ -334,9 +320,12 @@ public class OldClock implements EntryPoint {
 							segments[5].addMoveTo(false, true);
 							segments[6].addMoveTo(false, true);
 							break;
-							
-//						case 0:
-//							segments[]
+
+						case 0:
+							segments[1].addMoveTo(true, true);
+							segments[3].addMoveTo(true, true);
+							segments[6].addMoveTo(false, true);
+							break;
 
 						default:
 							System.out.println("Unknown number transition.  newNumber=" + newNumber + "  prevNumber=" + prevNumber);
@@ -349,6 +338,12 @@ public class OldClock implements EntryPoint {
 							segments[2].addMoveTo(false, true);
 							segments[3].addMoveTo(true, true);
 							segments[5].addMoveTo(true, true);
+							break;
+
+						case 0:
+							segments[1].addMoveTo(true, true);
+							segments[3].addMoveTo(true, true);
+							segments[5].addMoveTo(false, false);
 							break;
 
 						default:
@@ -373,6 +368,12 @@ public class OldClock implements EntryPoint {
 				case 5:
 					switch (prevNumber) {
 						case 6:
+							segments[5].addMoveTo(false, false);
+							break;
+
+						case 0:
+							segments[1].addMoveTo(true, true);
+							segments[4].addMoveTo(true, false);
 							segments[5].addMoveTo(false, false);
 							break;
 
@@ -555,7 +556,8 @@ public class OldClock implements EntryPoint {
 			// currentStart.y = baseEnd.y + ((OUTERLENGTH + PADDING_LENGTH) * (cos));
 			// }
 
-//			System.out.println(seg + "  " + (int) baseStart.x + "x" + (int) baseStart.y + "y   " + (int) currentEnd.x + "x" + (int) currentEnd.y + "y   " + (int) angle + "angle");
+			// System.out.println(seg + "  " + (int) baseStart.x + "x" + (int) baseStart.y + "y   " + (int) currentEnd.x
+			// + "x" + (int) currentEnd.y + "y   " + (int) angle + "angle");
 		}
 
 		public Segment(int seg) {
@@ -664,7 +666,7 @@ public class OldClock implements EntryPoint {
 
 			callcount++;
 
-//			System.out.println("=== interation ===");
+			// System.out.println("=== interation ===");
 			long curtime = System.currentTimeMillis();
 			int timediff = (int) (curtime - time);
 			if (timediff >= delay && decrament) {
@@ -674,7 +676,7 @@ public class OldClock implements EntryPoint {
 				timediff = 0;
 				stage1 = true;
 				stage2 = false;
-//				System.out.println("============ RESET ============");
+				// System.out.println("============ RESET ============");
 
 				n--;
 				if (n < 0)
@@ -708,32 +710,32 @@ public class OldClock implements EntryPoint {
 
 			canvas.clear();
 
-			Color c = Color.BLACK;
+//			Color c = Color.BLACK;
 
 			for (Segment segment : ll) {
 				if (!segment.draw)
 					continue;
 
-				if (c == Color.BLACK)
-					c = Color.BLUE;
-				else if (c == Color.BLUE)
-					c = Color.CYAN;
-				else if (c == Color.CYAN)
-					c = Color.DARK_ORANGE;
-				else if (c == Color.DARK_ORANGE)
-					c = Color.GREEN;
-				else if (c == Color.GREEN)
-					c = Color.GREY;
-				else if (c == Color.GREY)
-					c = Color.PINK;
-				else if (c == Color.PINK)
-					c = Color.RED;
-				else if (c == Color.RED)
-					c = Color.YELLOW;
-				else if (c == Color.YELLOW)
-					c = Color.BLACK;
+//				if (c == Color.BLACK)
+//					c = Color.BLUE;
+//				else if (c == Color.BLUE)
+//					c = Color.CYAN;
+//				else if (c == Color.CYAN)
+//					c = Color.DARK_ORANGE;
+//				else if (c == Color.DARK_ORANGE)
+//					c = Color.GREEN;
+//				else if (c == Color.GREEN)
+//					c = Color.GREY;
+//				else if (c == Color.GREY)
+//					c = Color.PINK;
+//				else if (c == Color.PINK)
+//					c = Color.RED;
+//				else if (c == Color.RED)
+//					c = Color.YELLOW;
+//				else if (c == Color.YELLOW)
+//					c = Color.BLACK;
 
-				canvas.setStrokeStyle(c);
+//				canvas.setStrokeStyle(c);
 
 				segment.animateCurrentMoveTo(angle);
 
@@ -752,23 +754,23 @@ public class OldClock implements EntryPoint {
 		}
 	}
 
-	public class Canvas extends GWTCanvas implements HasMouseMoveHandlers {
-
-		public Canvas() {
-			super();
-		}
-
-		public Canvas(int coordX, int coordY) {
-			super(coordX, coordY);
-		}
-
-		public Canvas(int coordX, int coordY, int pixelX, int pixelY) {
-			super(coordX, coordY, pixelX, pixelY);
-		}
-
-		@Override
-		public HandlerRegistration addMouseMoveHandler(MouseMoveHandler handler) {
-			return addDomHandler(handler, MouseMoveEvent.getType());
-		}
-	}
+	// public class Canvas extends GWTCanvas implements HasMouseMoveHandlers {
+	//
+	// public Canvas() {
+	// super();
+	// }
+	//
+	// public Canvas(int coordX, int coordY) {
+	// super(coordX, coordY);
+	// }
+	//
+	// public Canvas(int coordX, int coordY, int pixelX, int pixelY) {
+	// super(coordX, coordY, pixelX, pixelY);
+	// }
+	//
+	// @Override
+	// public HandlerRegistration addMouseMoveHandler(MouseMoveHandler handler) {
+	// return addDomHandler(handler, MouseMoveEvent.getType());
+	// }
+	// }
 }
