@@ -43,9 +43,13 @@ public class OldClock implements EntryPoint {
 		
 
 	    final TextBox days = new TextBox();
+	    days.setText("200");
 	    final TextBox hours = new TextBox();
+	    hours.setText("0");
 	    final TextBox minutes = new TextBox();
+	    minutes.setText("0");
 	    final TextBox seconds = new TextBox();
+	    seconds.setText("20");
 	    final DialogBox box = new DialogBox();
 	    
 	    Grid g = new Grid(5,2);
