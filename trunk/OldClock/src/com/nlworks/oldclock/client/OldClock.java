@@ -18,11 +18,14 @@ import com.google.gwt.widgetideas.graphics.client.GWTCanvas;
  */
 public class OldClock implements EntryPoint {
 
-	Canvas canvas = new Canvas(800, 400);
+	Canvas canvas = new Canvas(1200, 1200);
 	Label fpslabel = new Label();
+	boolean decrament = false;
 
 	int n = 8;
-	public static final int delay = 10000;
+	public static final int delay = 1000;
+
+	MyTime myTime;
 
 	public void onModuleLoad() {
 
@@ -34,12 +37,10 @@ public class OldClock implements EntryPoint {
 		RootPanel.get().add(fpslabel);
 
 		Draw draw = new Draw();
-		draw.scheduleRepeating(1);
+		draw.scheduleRepeating(10);
 
-		// final MyTime myTime = new MyTime(200, 00, 00, 05);
+		myTime = new MyTime(200, 00, 00, 05);
 
-		final NumberSegment segment = new NumberSegment(new Point(20, 20), n);
-		addNumber(segment);
 
 		canvas.addMouseMoveHandler(new MouseMoveHandler() {
 
@@ -54,10 +55,7 @@ public class OldClock implements EntryPoint {
 			@Override
 			public void run() {
 				// myTime.decrement();
-				n--;
-				if (n < 0)
-					n = 9;
-				segment.setNumber(n);
+				decrament = true;
 			}
 		}).scheduleRepeating(delay);
 
@@ -65,12 +63,9 @@ public class OldClock implements EntryPoint {
 
 			@Override
 			public void run() {
-				n--;
-				if (n < 0)
-					n = 9;
-				segment.setNumber(n);
+				decrament = true;
 			}
-		}).schedule(1000);
+		}).schedule(200);
 
 	}
 
@@ -84,6 +79,11 @@ public class OldClock implements EntryPoint {
 		}
 
 		public Point(Point point) {
+			x = point.x;
+			y = point.y;
+		}
+
+		public void copy(Point point) {
 			x = point.x;
 			y = point.y;
 		}
@@ -243,17 +243,26 @@ public class OldClock implements EntryPoint {
 		public NumberSegment(Point startPosition, int number) {
 			this.startPosition = startPosition;
 
-			segments[0] = new Segment();
-			segments[1] = new Segment();
-			segments[2] = new Segment();
-			segments[3] = new Segment();
-			segments[4] = new Segment();
-			segments[5] = new Segment();
-			segments[6] = new Segment();
+			segments[0] = new Segment(0);
+			segments[1] = new Segment(1);
+			segments[2] = new Segment(2);
+			segments[3] = new Segment(3);
+			segments[4] = new Segment(4);
+			segments[5] = new Segment(5);
+			segments[6] = new Segment(6);
 			setGoodPosition();
 
-			prevNumber = number;
-			newNumber = number;
+
+			prevNumber = 8;
+			newNumber = 8;
+
+			for (int i = 8; newNumber != number; i--)
+			{
+				setNumber(i);
+				for (int j=0; j < 7; j++)
+					segments[j].completeAllAnimations();
+			}
+			
 			setNumber(number);
 		}
 
@@ -280,6 +289,9 @@ public class OldClock implements EntryPoint {
 			prevNumber = newNumber;
 			this.newNumber = number;
 
+			if (prevNumber == newNumber)
+				return;
+			
 			switch (newNumber) {
 				case 0:
 					switch (prevNumber) {
@@ -293,7 +305,7 @@ public class OldClock implements EntryPoint {
 							segments[5].addMoveTo(true, true);
 							segments[5].addMoveTo(false, true);
 							break;
-
+							
 						default:
 							System.out.println("Unknown number transition.  newNumber=" + newNumber + "  prevNumber=" + prevNumber);
 					}
@@ -306,8 +318,9 @@ public class OldClock implements EntryPoint {
 							segments[1].addMoveTo(false, true);
 							segments[2].addFillerMove();
 							segments[2].addMoveTo(false, false);
-							segments[5].addMoveTo(false, true);
+							segments[5].addMoveTo(false, false);
 							segments[5].addMoveTo(true, false);
+							segments[6].addMoveTo(false, false);
 							break;
 
 						default:
@@ -321,6 +334,9 @@ public class OldClock implements EntryPoint {
 							segments[5].addMoveTo(false, true);
 							segments[6].addMoveTo(false, true);
 							break;
+							
+//						case 0:
+//							segments[]
 
 						default:
 							System.out.println("Unknown number transition.  newNumber=" + newNumber + "  prevNumber=" + prevNumber);
@@ -344,6 +360,7 @@ public class OldClock implements EntryPoint {
 					switch (prevNumber) {
 						case 5:
 							segments[0].addMoveTo(false, true);
+							segments[2].addMoveTo(false, false);
 							segments[4].addMoveTo(true, true);
 							segments[5].addMoveTo(true, false);
 							break;
@@ -367,7 +384,7 @@ public class OldClock implements EntryPoint {
 				case 6:
 					switch (prevNumber) {
 						case 7:
-							segments[1].addMoveTo(false, false);
+							segments[1].addMoveTo(false, true);
 							segments[2].addMoveTo(false, true);
 							segments[3].addMoveTo(true, false);
 							segments[4].addMoveTo(true, false);
@@ -440,9 +457,9 @@ public class OldClock implements EntryPoint {
 		public boolean rotateOnStart, rotatePositive;
 		public boolean doNothing;
 
-		public void set(boolean rotateOnStart, boolean rotateNegative) {
+		public void set(boolean rotateOnStart, boolean rotatePositive) {
 			this.rotateOnStart = rotateOnStart;
-			this.rotatePositive = rotateNegative;
+			this.rotatePositive = rotatePositive;
 			doNothing = false;
 		}
 	}
@@ -452,51 +469,97 @@ public class OldClock implements EntryPoint {
 		public boolean draw = true;
 		public boolean horizontal;
 
-		public static final double INNERLENGTH = 4d;
+		public static final double PADDING_LENGTH = 4d;
 		public static final double OUTERLENGTH = 35d;
-		public static final double TOTALLENGHT = INNERLENGTH + OUTERLENGTH + INNERLENGTH;
+		public static final double TOTALLENGHT = PADDING_LENGTH + OUTERLENGTH + PADDING_LENGTH;
 
 		MoveToObject moveQueue[] = new MoveToObject[2];
 		private int queuePos = 0;
 		private int queueLen = 0;
 
-		private void setAngle(double sin, double cos, boolean rotateOnStart, boolean rotatePositive) {
-			if (!rotatePositive) {
-				cos *= -1;
-				sin *= -1;
-			}
+		private int seg;
 
-			if (rotateOnStart && horizontal) {
-				currentStart.x = baseStart.x + ((INNERLENGTH) * cos);
-				currentStart.y = baseStart.y + ((INNERLENGTH) * sin);
+		private void setAngle(double angle, boolean rotateOnStart, boolean rotatePositive) {
 
-				currentEnd.x = baseStart.x + ((OUTERLENGTH + INNERLENGTH) * cos);
-				currentEnd.y = baseStart.y + ((OUTERLENGTH + INNERLENGTH) * sin);
-			} else if (rotateOnStart && !horizontal) {
-				currentEnd.x = baseEnd.x + ((INNERLENGTH) * cos);
-				currentEnd.y = baseEnd.y + ((INNERLENGTH) * sin);
+			double cos, sin, add = 0;
 
-				currentStart.x = baseEnd.x + ((OUTERLENGTH + INNERLENGTH) * cos);
-				currentStart.y = baseEnd.y + ((OUTERLENGTH + INNERLENGTH) * sin);
-			} else if (!rotateOnStart && horizontal) {
-				currentStart.x = baseStart.x + ((INNERLENGTH) * sin);
-				currentStart.y = baseStart.y + ((INNERLENGTH) * cos);
+			if (horizontal) {
+				if (rotateOnStart) {
+					if (baseStart.x <= baseEnd.x)
+						add = 0;
+					else
+						add = 180;
+				} else {
+					if (baseStart.x <= baseEnd.x)
+						add = 180;
+					else
+						add = 0;
+				}
 
-				currentEnd.x = baseStart.x + ((OUTERLENGTH + INNERLENGTH) * sin);
-				currentEnd.y = baseStart.y + ((OUTERLENGTH + INNERLENGTH) * cos);
 			} else {
-				currentEnd.x = baseEnd.x + ((INNERLENGTH) * sin);
-				currentEnd.y = baseEnd.y + ((INNERLENGTH) * cos);
-
-				currentStart.x = baseEnd.x + ((OUTERLENGTH + INNERLENGTH) * sin);
-				currentStart.y = baseEnd.y + ((OUTERLENGTH + INNERLENGTH) * cos);
+				if (rotateOnStart) {
+					if (baseStart.y <= baseEnd.y)
+						add = 90;
+					else
+						add = 270;
+				} else {
+					if (baseStart.y <= baseEnd.y)
+						add = 270;
+					else
+						add = 90;
+				}
 			}
 
-			// System.out.println(baseStart.x + "x" + baseStart.y + "y   " + currentEnd.x + "x" + currentEnd.y + "y   "
-			// + angle + "angle");
+			if (rotatePositive) {
+				cos = Math.cos(Math.toRadians(add - angle));
+				sin = Math.sin(Math.toRadians(add - angle));
+			} else {
+				cos = Math.cos(Math.toRadians(add + angle));
+				sin = Math.sin(Math.toRadians(add + angle));
+			}
+
+			// segments[1].addMoveTo(false, false);
+			// segments[3].addMoveTo(true, true);
+			// segments[5].addMoveTo(false, false);
+
+			if (rotateOnStart) {
+				currentStart.x = baseStart.x + ((PADDING_LENGTH) * cos);
+				currentStart.y = baseStart.y + ((PADDING_LENGTH) * sin);
+
+				currentEnd.x = baseStart.x + ((OUTERLENGTH + PADDING_LENGTH) * cos);
+				currentEnd.y = baseStart.y + ((OUTERLENGTH + PADDING_LENGTH) * sin);
+			} else {
+				currentEnd.x = baseEnd.x + ((PADDING_LENGTH) * cos);
+				currentEnd.y = baseEnd.y + ((PADDING_LENGTH) * sin);
+
+				currentStart.x = baseEnd.x + ((OUTERLENGTH + PADDING_LENGTH) * cos);
+				currentStart.y = baseEnd.y + ((OUTERLENGTH + PADDING_LENGTH) * sin);
+			}
+			// else if (rotateOnStart && !horizontal) {
+			// currentStart.x = baseStart.x + ((PADDING_LENGTH) * sin);
+			// currentStart.y = baseStart.y + ((PADDING_LENGTH) * cos);
+			//
+			// currentEnd.x = baseStart.x + ((OUTERLENGTH + PADDING_LENGTH) * sin);
+			// currentEnd.y = baseStart.y + ((OUTERLENGTH + PADDING_LENGTH) * cos);
+			// } else if (!rotateOnStart && horizontal) {
+			// currentEnd.x = baseEnd.x + ((PADDING_LENGTH) * cos);
+			// currentEnd.y = baseEnd.y + ((PADDING_LENGTH) * sin);
+			//
+			// currentStart.x = baseEnd.x + ((OUTERLENGTH + PADDING_LENGTH) * cos);
+			// currentStart.y = baseEnd.y + ((OUTERLENGTH + PADDING_LENGTH) * sin);
+			// } else if (!rotateOnStart && !horizontal) {
+			// currentEnd.x = baseEnd.x + ((PADDING_LENGTH) * (sin));
+			// currentEnd.y = baseEnd.y + ((PADDING_LENGTH) * (cos));
+			//
+			// currentStart.x = baseEnd.x + ((OUTERLENGTH + PADDING_LENGTH) * (sin));
+			// currentStart.y = baseEnd.y + ((OUTERLENGTH + PADDING_LENGTH) * (cos));
+			// }
+
+//			System.out.println(seg + "  " + (int) baseStart.x + "x" + (int) baseStart.y + "y   " + (int) currentEnd.x + "x" + (int) currentEnd.y + "y   " + (int) angle + "angle");
 		}
 
-		public Segment() {
+		public Segment(int seg) {
+			this.seg = seg;
 			moveQueue[0] = new MoveToObject();
 			moveQueue[1] = new MoveToObject();
 		}
@@ -505,13 +568,13 @@ public class OldClock implements EntryPoint {
 			this.horizontal = horizontal;
 
 			if (horizontal) {
-				baseStart = new Point(x - INNERLENGTH, y);
-				baseEnd = new Point(x + INNERLENGTH + OUTERLENGTH, y);
+				baseStart = new Point(x - PADDING_LENGTH, y);
+				baseEnd = new Point(x + PADDING_LENGTH + OUTERLENGTH, y);
 				currentStart = new Point(x, y);
 				currentEnd = new Point(x + OUTERLENGTH, y);
 			} else {
-				baseStart = new Point(x, y - INNERLENGTH);
-				baseEnd = new Point(x, y + INNERLENGTH + OUTERLENGTH);
+				baseStart = new Point(x, y - PADDING_LENGTH);
+				baseEnd = new Point(x, y + PADDING_LENGTH + OUTERLENGTH);
 				currentStart = new Point(x, y);
 				currentEnd = new Point(x, y + OUTERLENGTH);
 			}
@@ -523,17 +586,17 @@ public class OldClock implements EntryPoint {
 			queueLen++;
 		}
 
-		public void addMoveTo(boolean rotateOnStart, boolean rotateNegative) {
+		public void addMoveTo(boolean rotateOnStart, boolean rotatePositive) {
 
-			moveQueue[queueLen].set(rotateOnStart, rotateNegative);
+			moveQueue[queueLen].set(rotateOnStart, rotatePositive);
 			queueLen++;
 		}
 
-		public void animateCurrentMoveTo(double sin, double cos) {
+		public void animateCurrentMoveTo(double angle) {
 			if (queuePos >= queueLen || moveQueue[queuePos].doNothing)
 				return;
 
-			setAngle(sin, cos, moveQueue[queuePos].rotateOnStart, moveQueue[queuePos].rotatePositive);
+			setAngle(angle, moveQueue[queuePos].rotateOnStart, moveQueue[queuePos].rotatePositive);
 		}
 
 		public void completeCurrentAnimation() {
@@ -541,9 +604,35 @@ public class OldClock implements EntryPoint {
 				return;
 
 			if (!moveQueue[queuePos].doNothing) {
-				// sin(90)=1, cos(90)=0
-				setAngle(1, 0, moveQueue[queuePos].rotateOnStart, moveQueue[queuePos].rotatePositive);
+				setAngle(90, moveQueue[queuePos].rotateOnStart, moveQueue[queuePos].rotatePositive);
 				horizontal = !horizontal;
+			}
+
+			if (horizontal) {
+				if (currentStart.x < currentEnd.x) {
+					baseStart.x = currentStart.x - PADDING_LENGTH;
+					baseStart.y = currentStart.y;
+					baseEnd.x = currentEnd.x + PADDING_LENGTH;
+					baseEnd.y = currentEnd.y;
+				} else {
+					baseStart.x = currentStart.x + PADDING_LENGTH;
+					baseStart.y = currentStart.y;
+					baseEnd.x = currentEnd.x - PADDING_LENGTH;
+					baseEnd.y = currentEnd.y;
+				}
+			} else {
+				if (currentStart.y < currentEnd.y) {
+					baseStart.x = currentStart.x;
+					baseStart.y = currentStart.y - PADDING_LENGTH;
+					baseEnd.x = currentEnd.x;
+					baseEnd.y = currentEnd.y + PADDING_LENGTH;
+				} else {
+					baseStart.x = currentStart.x;
+					baseStart.y = currentStart.y + PADDING_LENGTH;
+					baseEnd.x = currentEnd.x;
+					baseEnd.y = currentEnd.y - PADDING_LENGTH;
+				}
+
 			}
 
 			queuePos++;
@@ -551,11 +640,8 @@ public class OldClock implements EntryPoint {
 
 		public void completeAllAnimations() {
 
-			for (; queuePos < queueLen; queuePos++)
-				if (!moveQueue[queuePos].doNothing) {
-					setAngle(0, 1, moveQueue[queuePos].rotateOnStart, moveQueue[queuePos].rotatePositive);
-					horizontal = !horizontal;
-				}
+			for (; queuePos < queueLen;)
+				completeCurrentAnimation();
 
 			queuePos = 0;
 			queueLen = 0;
@@ -570,6 +656,7 @@ public class OldClock implements EntryPoint {
 		int callcount = 0;
 		long time = System.currentTimeMillis();
 		double sin, cos;
+		double angle;
 		boolean stage1 = true, stage2 = false;
 
 		@Override
@@ -577,27 +664,36 @@ public class OldClock implements EntryPoint {
 
 			callcount++;
 
+//			System.out.println("=== interation ===");
 			long curtime = System.currentTimeMillis();
 			int timediff = (int) (curtime - time);
-			if (timediff >= delay) {
+			if (timediff >= delay && decrament) {
 				fpslabel.setText(Integer.toString(callcount));
 				time = curtime;
 				callcount = 0;
 				timediff = 0;
 				stage1 = true;
 				stage2 = false;
-				// System.out.println("============ RESET ============");
+//				System.out.println("============ RESET ============");
+
+				n--;
+				if (n < 0)
+					n = 9;
+				myTime.decrement();
+				decrament = false;
 			}
 
-			if (timediff < (delay / 2)) {
+			if (timediff <= (delay / 2.0d)) {
 				stage1 = true;
-				double angle = Math.toRadians(timediff * (90.0d / (delay / 2.0d)));
+				// double angle = Math.toRadians(timediff * (90.0d / (delay / 2.0d)));
+				angle = timediff * (90.0d / (delay / 2.0d));
+
 				sin = Math.sin(angle);
 				cos = Math.cos(angle);
-
 			} else {
 				stage2 = true;
-				double angle = Math.toRadians((timediff - delay / 2) * (90.0d / (delay / 2.0d)));
+				// double angle = Math.toRadians((timediff - delay / 2) * (90.0d / (delay / 2.0d)));
+				angle = (timediff - delay / 2.0d) * (90.0d / (delay / 2.0d));
 				sin = Math.sin(angle);
 				cos = Math.cos(angle);
 			}
@@ -608,7 +704,7 @@ public class OldClock implements EntryPoint {
 				stage1 = false;
 			}
 
-			canvas.saveContext();
+			// canvas.saveContext();
 
 			canvas.clear();
 
@@ -639,7 +735,7 @@ public class OldClock implements EntryPoint {
 
 				canvas.setStrokeStyle(c);
 
-				segment.animateCurrentMoveTo(sin, cos);
+				segment.animateCurrentMoveTo(angle);
 
 				canvas.beginPath();
 				{
@@ -651,7 +747,7 @@ public class OldClock implements EntryPoint {
 
 			}
 
-			canvas.restoreContext();
+			// canvas.restoreContext();
 
 		}
 	}
