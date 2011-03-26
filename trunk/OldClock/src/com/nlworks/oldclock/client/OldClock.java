@@ -1,22 +1,17 @@
 package com.nlworks.oldclock.client;
 
+import java.util.LinkedList;
+
 import com.google.gwt.core.client.EntryPoint;
-import com.google.gwt.event.dom.client.HasMouseDownHandlers;
 import com.google.gwt.event.dom.client.HasMouseMoveHandlers;
-import com.google.gwt.event.dom.client.HasMouseOverHandlers;
 import com.google.gwt.event.dom.client.MouseMoveEvent;
 import com.google.gwt.event.dom.client.MouseMoveHandler;
-import com.google.gwt.event.dom.client.MouseOverHandler;
 import com.google.gwt.event.shared.HandlerRegistration;
 import com.google.gwt.user.client.Timer;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.RootPanel;
 import com.google.gwt.widgetideas.graphics.client.Color;
 import com.google.gwt.widgetideas.graphics.client.GWTCanvas;
-
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.LinkedList;
 
 /**
  * Entry point classes define <code>onModuleLoad()</code>.
@@ -25,6 +20,9 @@ public class OldClock implements EntryPoint {
 
 	Canvas canvas = new Canvas(800, 400);
 	Label fpslabel = new Label();
+
+	int n = 8;
+	public static final int delay = 10000;
 
 	public void onModuleLoad() {
 
@@ -38,7 +36,10 @@ public class OldClock implements EntryPoint {
 		Draw draw = new Draw();
 		draw.scheduleRepeating(1);
 
-		final MyTime myTime = new MyTime(200, 00, 00, 05);
+		// final MyTime myTime = new MyTime(200, 00, 00, 05);
+
+		final NumberSegment segment = new NumberSegment(new Point(20, 20), n);
+		addNumber(segment);
 
 		canvas.addMouseMoveHandler(new MouseMoveHandler() {
 
@@ -52,10 +53,25 @@ public class OldClock implements EntryPoint {
 
 			@Override
 			public void run() {
-				myTime.decrement();
-
+				// myTime.decrement();
+				n--;
+				if (n < 0)
+					n = 9;
+				segment.setNumber(n);
 			}
-		}).scheduleRepeating(1000);
+		}).scheduleRepeating(delay);
+
+		(new Timer() {
+
+			@Override
+			public void run() {
+				n--;
+				if (n < 0)
+					n = 9;
+				segment.setNumber(n);
+			}
+		}).schedule(1000);
+
 	}
 
 	class Point {
@@ -67,9 +83,9 @@ public class OldClock implements EntryPoint {
 			this.y = y;
 		}
 
-		public Point(Point targetEnd) {
-			x = targetEnd.x;
-			y = targetEnd.y;
+		public Point(Point point) {
+			x = point.x;
+			y = point.y;
 		}
 	}
 
@@ -236,6 +252,8 @@ public class OldClock implements EntryPoint {
 			segments[6] = new Segment();
 			setGoodPosition();
 
+			prevNumber = number;
+			newNumber = number;
 			setNumber(number);
 		}
 
@@ -255,104 +273,152 @@ public class OldClock implements EntryPoint {
 		 * @param number
 		 */
 		public void setNumber(int number) {
-			this.newNumber = number;
 
 			for (int i = 0; i < 7; i++)
-				segments[i].completeCurrentAnimation();
+				segments[i].completeAllAnimations();
+
+			prevNumber = newNumber;
+			this.newNumber = number;
 
 			switch (newNumber) {
 				case 0:
 					switch (prevNumber) {
-						case 9:
-
+						case 1:
+							segments[0].addMoveTo(false, false);
+							segments[1].addMoveTo(true, true);
+							segments[1].addMoveTo(false, true);
+							segments[2].addMoveTo(false, true);
+							segments[3].addMoveTo(false, false);
+							segments[3].addMoveTo(true, false);
+							segments[5].addMoveTo(true, true);
+							segments[5].addMoveTo(false, true);
 							break;
 
 						default:
-							System.out.println("Unknown number transition");
+							System.out.println("Unknown number transition.  newNumber=" + newNumber + "  prevNumber=" + prevNumber);
 					}
+					break;
 
-					break;
 				case 1:
-					segments[0].draw = false;
-					segments[1].draw = false;
-					segments[2].draw = false;
-					segments[3].draw = false;
-					segments[4].draw = true;
-					segments[5].draw = false;
-					segments[6].draw = true;
+					switch (prevNumber) {
+						case 2:
+							segments[3].addMoveTo(false, true);
+							segments[1].addMoveTo(false, true);
+							segments[2].addFillerMove();
+							segments[2].addMoveTo(false, false);
+							segments[5].addMoveTo(false, true);
+							segments[5].addMoveTo(true, false);
+							break;
+
+						default:
+							System.out.println("Unknown number transition.  newNumber=" + newNumber + "  prevNumber=" + prevNumber);
+					}
 					break;
+
 				case 2:
-					segments[0].draw = true;
-					segments[1].draw = true;
-					segments[2].draw = true;
-					segments[3].draw = false;
-					segments[4].draw = true;
-					segments[5].draw = true;
-					segments[6].draw = false;
+					switch (prevNumber) {
+						case 3:
+							segments[5].addMoveTo(false, true);
+							segments[6].addMoveTo(false, true);
+							break;
+
+						default:
+							System.out.println("Unknown number transition.  newNumber=" + newNumber + "  prevNumber=" + prevNumber);
+					}
 					break;
+
 				case 3:
-					segments[0].draw = true;
-					segments[1].draw = true;
-					segments[2].draw = true;
-					segments[3].draw = false;
-					segments[4].draw = true;
-					segments[5].draw = false;
-					segments[6].draw = true;
+					switch (prevNumber) {
+						case 4:
+							segments[2].addMoveTo(false, true);
+							segments[3].addMoveTo(true, true);
+							segments[5].addMoveTo(true, true);
+							break;
+
+						default:
+							System.out.println("Unknown number transition.  newNumber=" + newNumber + "  prevNumber=" + prevNumber);
+					}
 					break;
+
 				case 4:
-					segments[0].draw = false;
-					segments[1].draw = true;
-					segments[2].draw = false;
-					segments[3].draw = true;
-					segments[4].draw = true;
-					segments[5].draw = false;
-					segments[6].draw = true;
+					switch (prevNumber) {
+						case 5:
+							segments[0].addMoveTo(false, true);
+							segments[4].addMoveTo(true, true);
+							segments[5].addMoveTo(true, false);
+							break;
+
+						default:
+							System.out.println("Unknown number transition.  newNumber=" + newNumber + "  prevNumber=" + prevNumber);
+					}
 					break;
+
 				case 5:
-					segments[0].draw = true;
-					segments[1].draw = true;
-					segments[2].draw = true;
-					segments[3].draw = true;
-					segments[4].draw = false;
-					segments[5].draw = false;
-					segments[6].draw = true;
+					switch (prevNumber) {
+						case 6:
+							segments[5].addMoveTo(false, false);
+							break;
+
+						default:
+							System.out.println("Unknown number transition.  newNumber=" + newNumber + "  prevNumber=" + prevNumber);
+					}
 					break;
+
 				case 6:
-					segments[0].draw = true;
-					segments[1].draw = true;
-					segments[2].draw = true;
-					segments[3].draw = true;
-					segments[4].draw = false;
-					segments[5].draw = true;
-					segments[6].draw = true;
+					switch (prevNumber) {
+						case 7:
+							segments[1].addMoveTo(false, false);
+							segments[2].addMoveTo(false, true);
+							segments[3].addMoveTo(true, false);
+							segments[4].addMoveTo(true, false);
+							segments[5].addMoveTo(true, true);
+							segments[5].addMoveTo(false, true);
+							break;
+
+						default:
+							System.out.println("Unknown number transition.  newNumber=" + newNumber + "  prevNumber=" + prevNumber);
+					}
 					break;
+
 				case 7:
-					segments[0].draw = true;
-					segments[1].draw = false;
-					segments[2].draw = false;
-					segments[3].draw = false;
-					segments[4].draw = true;
-					segments[5].draw = false;
-					segments[6].draw = true;
+					switch (prevNumber) {
+						case 8:
+							segments[1].addMoveTo(false, false);
+							segments[2].addFillerMove();
+							segments[2].addMoveTo(false, false);
+							segments[3].addMoveTo(true, true);
+							segments[5].addMoveTo(false, false);
+							segments[5].addMoveTo(true, false);
+							break;
+
+						default:
+							System.out.println("Unknown number transition.  newNumber=" + newNumber + "  prevNumber=" + prevNumber);
+					}
 					break;
+
 				case 8:
-					segments[0].draw = true;
-					segments[1].draw = true;
-					segments[2].draw = true;
-					segments[3].draw = true;
-					segments[4].draw = true;
-					segments[5].draw = true;
-					segments[6].draw = true;
+					switch (prevNumber) {
+						case 9:
+							segments[5].addMoveTo(true, false);
+							break;
+
+						default:
+							System.out.println("Unknown number transition.  newNumber=" + newNumber + "  prevNumber=" + prevNumber);
+					}
 					break;
+
 				case 9:
-					segments[0].draw = true;
-					segments[1].draw = true;
-					segments[2].draw = true;
-					segments[3].draw = true;
-					segments[4].draw = true;
-					segments[5].draw = false;
-					segments[6].draw = true;
+					switch (prevNumber) {
+						case 0:
+							segments[5].addMoveTo(true, true);
+							segments[1].addMoveTo(true, true);
+							break;
+
+						default:
+							System.out.println("Unknown number transition.  newNumber=" + newNumber + "  prevNumber=" + prevNumber);
+					}
 					break;
+
 				default:
 					System.out.println("invalid number");
 			}
@@ -371,28 +437,64 @@ public class OldClock implements EntryPoint {
 	}
 
 	public class MoveToObject {
-		public boolean rotateOnStart, rotateNegative;
+		public boolean rotateOnStart, rotatePositive;
 		public boolean doNothing;
 
 		public void set(boolean rotateOnStart, boolean rotateNegative) {
 			this.rotateOnStart = rotateOnStart;
-			this.rotateNegative = rotateNegative;
+			this.rotatePositive = rotateNegative;
 			doNothing = false;
 		}
 	}
 
 	public class Segment {
-		public Point baseStart, currentStart, targetEnd, currentEnd;
+		public Point baseStart, baseEnd, currentStart, currentEnd;
 		public boolean draw = true;
 		public boolean horizontal;
 
 		public static final double INNERLENGTH = 4d;
 		public static final double OUTERLENGTH = 35d;
-		public static final double TOTALLENGHT = INNERLENGTH + OUTERLENGTH;
+		public static final double TOTALLENGHT = INNERLENGTH + OUTERLENGTH + INNERLENGTH;
 
 		MoveToObject moveQueue[] = new MoveToObject[2];
 		private int queuePos = 0;
 		private int queueLen = 0;
+
+		private void setAngle(double sin, double cos, boolean rotateOnStart, boolean rotatePositive) {
+			if (!rotatePositive) {
+				cos *= -1;
+				sin *= -1;
+			}
+
+			if (rotateOnStart && horizontal) {
+				currentStart.x = baseStart.x + ((INNERLENGTH) * cos);
+				currentStart.y = baseStart.y + ((INNERLENGTH) * sin);
+
+				currentEnd.x = baseStart.x + ((OUTERLENGTH + INNERLENGTH) * cos);
+				currentEnd.y = baseStart.y + ((OUTERLENGTH + INNERLENGTH) * sin);
+			} else if (rotateOnStart && !horizontal) {
+				currentEnd.x = baseEnd.x + ((INNERLENGTH) * cos);
+				currentEnd.y = baseEnd.y + ((INNERLENGTH) * sin);
+
+				currentStart.x = baseEnd.x + ((OUTERLENGTH + INNERLENGTH) * cos);
+				currentStart.y = baseEnd.y + ((OUTERLENGTH + INNERLENGTH) * sin);
+			} else if (!rotateOnStart && horizontal) {
+				currentStart.x = baseStart.x + ((INNERLENGTH) * sin);
+				currentStart.y = baseStart.y + ((INNERLENGTH) * cos);
+
+				currentEnd.x = baseStart.x + ((OUTERLENGTH + INNERLENGTH) * sin);
+				currentEnd.y = baseStart.y + ((OUTERLENGTH + INNERLENGTH) * cos);
+			} else {
+				currentEnd.x = baseEnd.x + ((INNERLENGTH) * sin);
+				currentEnd.y = baseEnd.y + ((INNERLENGTH) * cos);
+
+				currentStart.x = baseEnd.x + ((OUTERLENGTH + INNERLENGTH) * sin);
+				currentStart.y = baseEnd.y + ((OUTERLENGTH + INNERLENGTH) * cos);
+			}
+
+			// System.out.println(baseStart.x + "x" + baseStart.y + "y   " + currentEnd.x + "x" + currentEnd.y + "y   "
+			// + angle + "angle");
+		}
 
 		public Segment() {
 			moveQueue[0] = new MoveToObject();
@@ -402,14 +504,18 @@ public class OldClock implements EntryPoint {
 		public void resetPosition(double x, double y, boolean horizontal) {
 			this.horizontal = horizontal;
 
-			if (horizontal)
+			if (horizontal) {
 				baseStart = new Point(x - INNERLENGTH, y);
-			else
+				baseEnd = new Point(x + INNERLENGTH + OUTERLENGTH, y);
+				currentStart = new Point(x, y);
+				currentEnd = new Point(x + OUTERLENGTH, y);
+			} else {
 				baseStart = new Point(x, y - INNERLENGTH);
+				baseEnd = new Point(x, y + INNERLENGTH + OUTERLENGTH);
+				currentStart = new Point(x, y);
+				currentEnd = new Point(x, y + OUTERLENGTH);
+			}
 
-			currentStart = new Point(x, y);
-			setInitialPoint(x, y);
-			currentEnd = new Point(targetEnd);
 		}
 
 		public void addFillerMove() {
@@ -427,16 +533,18 @@ public class OldClock implements EntryPoint {
 			if (queuePos >= queueLen || moveQueue[queuePos].doNothing)
 				return;
 
-			setAngle(sin, cos, moveQueue[queuePos].rotateOnStart, moveQueue[queuePos].rotateNegative);
+			setAngle(sin, cos, moveQueue[queuePos].rotateOnStart, moveQueue[queuePos].rotatePositive);
 		}
 
 		public void completeCurrentAnimation() {
 			if (queuePos >= queueLen)
 				return;
 
-			if (!moveQueue[queuePos].doNothing)
+			if (!moveQueue[queuePos].doNothing) {
 				// sin(90)=1, cos(90)=0
-				setAngle(1, 0, moveQueue[queuePos].rotateOnStart, moveQueue[queuePos].rotateNegative);
+				setAngle(1, 0, moveQueue[queuePos].rotateOnStart, moveQueue[queuePos].rotatePositive);
+				horizontal = !horizontal;
+			}
 
 			queuePos++;
 		}
@@ -444,43 +552,13 @@ public class OldClock implements EntryPoint {
 		public void completeAllAnimations() {
 
 			for (; queuePos < queueLen; queuePos++)
-				if (!moveQueue[queuePos].doNothing)
-					setAngle(0, 1, moveQueue[queuePos].rotateOnStart, moveQueue[queuePos].rotateNegative);
+				if (!moveQueue[queuePos].doNothing) {
+					setAngle(0, 1, moveQueue[queuePos].rotateOnStart, moveQueue[queuePos].rotatePositive);
+					horizontal = !horizontal;
+				}
 
 			queuePos = 0;
 			queueLen = 0;
-		}
-
-		public void setInitialPoint(double x, double y) {
-			if (horizontal) {
-				targetEnd = new Point(x + OUTERLENGTH, y);
-			} else {
-				targetEnd = new Point(x, y + OUTERLENGTH);
-			}
-		}
-
-		private void setAngle(double sin, double cos, boolean rotateOnStart, boolean rotateNegative) {
-			if (rotateNegative) {
-				cos *= -1;
-				sin *= -1;
-			}
-
-			if (rotateOnStart) {
-				currentStart.x = baseStart.x + ((INNERLENGTH) * cos);
-				currentStart.y = baseStart.y + ((INNERLENGTH) * sin);
-
-				currentEnd.x = baseStart.x + ((TOTALLENGHT) * cos);
-				currentEnd.y = baseStart.y + ((TOTALLENGHT) * sin);
-			} else {
-				currentStart.x = baseStart.x + ((INNERLENGTH) * sin);
-				currentStart.y = baseStart.y + ((INNERLENGTH) * cos);
-
-				currentEnd.x = baseStart.x + ((TOTALLENGHT) * sin);
-				currentEnd.y = baseStart.y + ((TOTALLENGHT) * cos);
-			}
-
-			// System.out.println(baseStart.x + "x" + baseStart.y + "y   " + currentEnd.x + "x" + currentEnd.y + "y   "
-			// + angle + "angle");
 		}
 	}
 
@@ -492,6 +570,7 @@ public class OldClock implements EntryPoint {
 		int callcount = 0;
 		long time = System.currentTimeMillis();
 		double sin, cos;
+		boolean stage1 = true, stage2 = false;
 
 		@Override
 		public void run() {
@@ -500,34 +579,67 @@ public class OldClock implements EntryPoint {
 
 			long curtime = System.currentTimeMillis();
 			int timediff = (int) (curtime - time);
-			if (timediff >= 1000) {
+			if (timediff >= delay) {
 				fpslabel.setText(Integer.toString(callcount));
 				time = curtime;
 				callcount = 0;
 				timediff = 0;
+				stage1 = true;
+				stage2 = false;
 				// System.out.println("============ RESET ============");
 			}
 
-			if (timediff < 500) {
-				double angle = Math.toRadians(2 * timediff * -0.09d);
-				ll.getLast().setAngle(Math.sin(angle), Math.cos(angle));
+			if (timediff < (delay / 2)) {
+				stage1 = true;
+				double angle = Math.toRadians(timediff * (90.0d / (delay / 2.0d)));
+				sin = Math.sin(angle);
+				cos = Math.cos(angle);
+
 			} else {
-				double angle = Math.toRadians((2000 - 2 * timediff) * -0.09d);
-				// ll.getLast().setAngle(Math.sin(angle), Math.cos(angle));
-				ll.getLast().setAngle(0, 1);
+				stage2 = true;
+				double angle = Math.toRadians((timediff - delay / 2) * (90.0d / (delay / 2.0d)));
+				sin = Math.sin(angle);
+				cos = Math.cos(angle);
+			}
+
+			if (stage1 && stage2) {
+				for (Segment segment : ll)
+					segment.completeCurrentAnimation();
+				stage1 = false;
 			}
 
 			canvas.saveContext();
 
 			canvas.clear();
-			canvas.setStrokeStyle(Color.BLACK);
+
+			Color c = Color.BLACK;
 
 			for (Segment segment : ll) {
 				if (!segment.draw)
 					continue;
 
-				if (segment == ll.getLast())
-					canvas.setStrokeStyle(Color.GREEN);
+				if (c == Color.BLACK)
+					c = Color.BLUE;
+				else if (c == Color.BLUE)
+					c = Color.CYAN;
+				else if (c == Color.CYAN)
+					c = Color.DARK_ORANGE;
+				else if (c == Color.DARK_ORANGE)
+					c = Color.GREEN;
+				else if (c == Color.GREEN)
+					c = Color.GREY;
+				else if (c == Color.GREY)
+					c = Color.PINK;
+				else if (c == Color.PINK)
+					c = Color.RED;
+				else if (c == Color.RED)
+					c = Color.YELLOW;
+				else if (c == Color.YELLOW)
+					c = Color.BLACK;
+
+				canvas.setStrokeStyle(c);
+
+				segment.animateCurrentMoveTo(sin, cos);
 
 				canvas.beginPath();
 				{
