@@ -3,25 +3,34 @@ package com.nlworks.oldclock.client;
 import java.util.LinkedList;
 
 import com.google.gwt.core.client.EntryPoint;
+import com.google.gwt.dom.client.ImageElement;
+import com.google.gwt.event.dom.client.ClickEvent;
+import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.user.client.Timer;
+import com.google.gwt.user.client.ui.Button;
+import com.google.gwt.user.client.ui.DialogBox;
+import com.google.gwt.user.client.ui.Grid;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.RootPanel;
+import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.widgetideas.graphics.client.Color;
 import com.google.gwt.widgetideas.graphics.client.GWTCanvas;
+import com.google.gwt.widgetideas.graphics.client.ImageLoader;
 
 /**
  * Entry point classes define <code>onModuleLoad()</code>.
  */
 public class OldClock implements EntryPoint {
 
-	GWTCanvas canvas = new GWTCanvas(1200, 1200);
+	GWTCanvas canvas = new GWTCanvas(1000, 500);
 	Label fpslabel = new Label();
 	boolean decrament = false;
 
-	int n = 8;
-	public static final int delay = 200;
+	public static final int delay = 1000;
 
 	MyTime myTime;
+
+	ImageElement dotIcon;
 
 	public void onModuleLoad() {
 
@@ -31,28 +40,75 @@ public class OldClock implements EntryPoint {
 		RootPanel.get().add(canvas);
 		RootPanel.get().add(new Label("FPS:"));
 		RootPanel.get().add(fpslabel);
+		
 
-		Draw draw = new Draw();
-		draw.scheduleRepeating(10);
+	    final TextBox days = new TextBox();
+	    final TextBox hours = new TextBox();
+	    final TextBox minutes = new TextBox();
+	    final TextBox seconds = new TextBox();
+	    final DialogBox box = new DialogBox();
+	    
+	    Grid g = new Grid(5,2);
+	    box.setWidget(g);
+	    g.setText(0, 0, "Days");
+	    g.setWidget(0, 1, days);
+	    
+	    g.setText(1, 0, "Hours");
+	    g.setWidget(1, 1, hours);
+	    
+	    g.setText(2, 0, "Minutes");
+	    g.setWidget(2, 1, minutes);
+	    
+	    g.setText(3, 0, "Seconds");
+	    g.setWidget(3, 1, seconds);
+	    
+	    Button b = new Button("Set Time");
+	    g.setWidget(4, 1, b);
 
-		myTime = new MyTime(200, 00, 00, 8);
-
-		(new Timer() {
-
+	    b.addClickHandler(new ClickHandler() {
+			
 			@Override
-			public void run() {
-				// myTime.decrement();
-				decrament = true;
-			}
-		}).scheduleRepeating(delay);
+			public void onClick(ClickEvent event) {
+			    String[] urls = new String[] {"/circle.png"};
 
-		(new Timer() {
+				ImageLoader.loadImages(urls, new ImageLoader.CallBack() {
+					
+					@Override
+					public void onImagesLoaded(ImageElement[] imageElements) {
+						
+						dotIcon = imageElements[0];
+						
+						int d = Integer.valueOf(days.getText());
+						int h = Integer.valueOf(hours.getText());
+						int m = Integer.valueOf(minutes.getText());
+						int s = Integer.valueOf(seconds.getText());
+						
+						if (d < 0 || d > 365 || h < 0 || h > 23 || m < 0 || m > 59 || s < 0 || s > 59)
+							return;
+						
+						box.setVisible(false);
 
-			@Override
-			public void run() {
-				decrament = true;
+						Draw draw = new Draw();
+						draw.scheduleRepeating(10);
+
+						myTime = new MyTime(d, h, m, s);
+
+						(new Timer() {
+
+							@Override
+							public void run() {
+								// myTime.decrement();
+								decrament = true;
+							}
+						}).scheduleRepeating(delay);
+					}
+				});
 			}
-		}).schedule(200);
+		});
+	    
+	    box.show();
+	    
+
 
 	}
 
@@ -94,17 +150,17 @@ public class OldClock implements EntryPoint {
 			numbers[1] = new NumberSegment(new Point(x, y), (days % 100) / 10);
 			x += 55;
 			numbers[2] = new NumberSegment(new Point(x, y), days % 10);
-			x += 120;
+			x += 95;
 
 			numbers[3] = new NumberSegment(new Point(x, y), hours / 10);
 			x += 55;
 			numbers[4] = new NumberSegment(new Point(x, y), hours % 10);
-			x += 120;
+			x += 95;
 
 			numbers[5] = new NumberSegment(new Point(x, y), minutes / 10);
 			x += 55;
 			numbers[6] = new NumberSegment(new Point(x, y), minutes % 10);
-			x += 120;
+			x += 95;
 
 			numbers[7] = new NumberSegment(new Point(x, y), seconds / 10);
 			x += 55;
@@ -322,6 +378,7 @@ public class OldClock implements EntryPoint {
 							break;
 
 						case 0:
+							segments[0].addMoveTo(false, true);
 							segments[1].addMoveTo(true, true);
 							segments[3].addMoveTo(true, true);
 							segments[6].addMoveTo(false, true);
@@ -341,6 +398,7 @@ public class OldClock implements EntryPoint {
 							break;
 
 						case 0:
+							segments[0].addMoveTo(false, true);
 							segments[1].addMoveTo(true, true);
 							segments[3].addMoveTo(true, true);
 							segments[5].addMoveTo(false, false);
@@ -666,7 +724,7 @@ public class OldClock implements EntryPoint {
 
 			callcount++;
 
-			// System.out.println("=== interation ===");
+//			 System.out.println("=== interation ===");
 			long curtime = System.currentTimeMillis();
 			int timediff = (int) (curtime - time);
 			if (timediff >= delay && decrament) {
@@ -676,28 +734,31 @@ public class OldClock implements EntryPoint {
 				timediff = 0;
 				stage1 = true;
 				stage2 = false;
-				// System.out.println("============ RESET ============");
+//				 System.out.println("============ RESET ============");
 
-				n--;
-				if (n < 0)
-					n = 9;
 				myTime.decrement();
 				decrament = false;
 			}
-
-			if (timediff <= (delay / 2.0d)) {
+			
+			if (timediff <= (delay / 3.0d)) {
 				stage1 = true;
 				// double angle = Math.toRadians(timediff * (90.0d / (delay / 2.0d)));
-				angle = timediff * (90.0d / (delay / 2.0d));
+				angle = timediff * (90.0d / (delay / 3.0d));
 
 				sin = Math.sin(angle);
 				cos = Math.cos(angle);
-			} else {
+			} else if (timediff <= (2.0d*delay / 3.0d)){
 				stage2 = true;
 				// double angle = Math.toRadians((timediff - delay / 2) * (90.0d / (delay / 2.0d)));
-				angle = (timediff - delay / 2.0d) * (90.0d / (delay / 2.0d));
+				angle = (timediff - delay / 3.0d) * (90.0d / (delay / 3.0d));
 				sin = Math.sin(angle);
 				cos = Math.cos(angle);
+			}
+			else {
+				stage1 = false;
+				stage2 = false;
+				for (Segment segment : ll)
+					segment.completeCurrentAnimation();
 			}
 
 			if (stage1 && stage2) {
@@ -706,36 +767,43 @@ public class OldClock implements EntryPoint {
 				stage1 = false;
 			}
 
-			// canvas.saveContext();
-
 			canvas.clear();
 
-//			Color c = Color.BLACK;
+			// Color c = Color.BLACK;
+			canvas.drawImage(dotIcon, 195, 45);
+			canvas.drawImage(dotIcon, 195, 70);
 
+			canvas.drawImage(dotIcon, 345, 45);
+			canvas.drawImage(dotIcon, 345, 70);
+
+			canvas.drawImage(dotIcon, 495, 45);
+			canvas.drawImage(dotIcon, 495, 70);
+
+			
 			for (Segment segment : ll) {
 				if (!segment.draw)
 					continue;
 
-//				if (c == Color.BLACK)
-//					c = Color.BLUE;
-//				else if (c == Color.BLUE)
-//					c = Color.CYAN;
-//				else if (c == Color.CYAN)
-//					c = Color.DARK_ORANGE;
-//				else if (c == Color.DARK_ORANGE)
-//					c = Color.GREEN;
-//				else if (c == Color.GREEN)
-//					c = Color.GREY;
-//				else if (c == Color.GREY)
-//					c = Color.PINK;
-//				else if (c == Color.PINK)
-//					c = Color.RED;
-//				else if (c == Color.RED)
-//					c = Color.YELLOW;
-//				else if (c == Color.YELLOW)
-//					c = Color.BLACK;
+				// if (c == Color.BLACK)
+				// c = Color.BLUE;
+				// else if (c == Color.BLUE)
+				// c = Color.CYAN;
+				// else if (c == Color.CYAN)
+				// c = Color.DARK_ORANGE;
+				// else if (c == Color.DARK_ORANGE)
+				// c = Color.GREEN;
+				// else if (c == Color.GREEN)
+				// c = Color.GREY;
+				// else if (c == Color.GREY)
+				// c = Color.PINK;
+				// else if (c == Color.PINK)
+				// c = Color.RED;
+				// else if (c == Color.RED)
+				// c = Color.YELLOW;
+				// else if (c == Color.YELLOW)
+				// c = Color.BLACK;
 
-//				canvas.setStrokeStyle(c);
+				// canvas.setStrokeStyle(c);
 
 				segment.animateCurrentMoveTo(angle);
 
@@ -748,8 +816,6 @@ public class OldClock implements EntryPoint {
 				canvas.stroke();
 
 			}
-
-			// canvas.restoreContext();
 
 		}
 	}

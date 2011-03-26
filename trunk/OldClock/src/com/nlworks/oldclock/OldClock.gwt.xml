@@ -5,4 +5,6 @@
 	<inherits name='com.google.gwt.widgetideas.GWTCanvas' />
 	<entry-point class='com.nlworks.oldclock.client.OldClock' />
 	<source path='client' />
+	<source path='shared' />
+
 </module>
