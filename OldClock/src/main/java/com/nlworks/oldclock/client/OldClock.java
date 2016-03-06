@@ -2,27 +2,31 @@ package com.nlworks.oldclock.client;
 
 import java.util.LinkedList;
 
+import com.google.gwt.canvas.client.Canvas;
+import com.google.gwt.canvas.dom.client.Context2d;
 import com.google.gwt.core.client.EntryPoint;
 import com.google.gwt.dom.client.ImageElement;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
+import com.google.gwt.event.dom.client.LoadEvent;
+import com.google.gwt.event.dom.client.LoadHandler;
 import com.google.gwt.user.client.Timer;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.DialogBox;
 import com.google.gwt.user.client.ui.Grid;
+import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.RootPanel;
 import com.google.gwt.user.client.ui.TextBox;
-import com.google.gwt.widgetideas.graphics.client.Color;
-import com.google.gwt.widgetideas.graphics.client.GWTCanvas;
-import com.google.gwt.widgetideas.graphics.client.ImageLoader;
 
 /**
  * Entry point classes define <code>onModuleLoad()</code>.
  */
 public class OldClock implements EntryPoint {
 
-	GWTCanvas canvas = new GWTCanvas(1000, 500);
+	Canvas canvas = Canvas.createIfSupported();
+	Context2d context = canvas.getContext2d();
+	//(1000, 500);
 	Label fpslabel = new Label();
 	boolean decrament = false;
 
@@ -34,8 +38,8 @@ public class OldClock implements EntryPoint {
 
 	public void onModuleLoad() {
 
-		canvas.setLineWidth(6);
-		canvas.setStrokeStyle(Color.BLACK);
+		context.setLineWidth(6);
+		context.setStrokeStyle("BLACK");
 
 		RootPanel.get().add(canvas);
 		RootPanel.get().add(new Label("FPS:"));
@@ -73,15 +77,11 @@ public class OldClock implements EntryPoint {
 			
 			@Override
 			public void onClick(ClickEvent event) {
-			    String[] urls = new String[] {"/circle.png"};
-
-				ImageLoader.loadImages(urls, new ImageLoader.CallBack() {
-					
+			    Image img = new Image("circle.png");
+			    dotIcon = ImageElement.as(img.getElement());
+			    img.addLoadHandler(new LoadHandler() {
 					@Override
-					public void onImagesLoaded(ImageElement[] imageElements) {
-						
-						dotIcon = imageElements[0];
-						
+					public void onLoad(LoadEvent event) {
 						int d = Integer.valueOf(days.getText());
 						int h = Integer.valueOf(hours.getText());
 						int m = Integer.valueOf(minutes.getText());
@@ -106,7 +106,7 @@ public class OldClock implements EntryPoint {
 							}
 						}).scheduleRepeating(delay);
 					}
-				});
+			    });
 			}
 		});
 	    
@@ -771,17 +771,17 @@ public class OldClock implements EntryPoint {
 				stage1 = false;
 			}
 
-			canvas.clear();
+			context.clearRect(0, 0, canvas.getCanvasElement().getWidth(), canvas.getCanvasElement().getWidth());
 
 			// Color c = Color.BLACK;
-			canvas.drawImage(dotIcon, 195, 45);
-			canvas.drawImage(dotIcon, 195, 70);
+			context.drawImage(dotIcon, 195, 45);
+			context.drawImage(dotIcon, 195, 70);
 
-			canvas.drawImage(dotIcon, 345, 45);
-			canvas.drawImage(dotIcon, 345, 70);
+			context.drawImage(dotIcon, 345, 45);
+			context.drawImage(dotIcon, 345, 70);
 
-			canvas.drawImage(dotIcon, 495, 45);
-			canvas.drawImage(dotIcon, 495, 70);
+			context.drawImage(dotIcon, 495, 45);
+			context.drawImage(dotIcon, 495, 70);
 
 			
 			for (Segment segment : ll) {
@@ -811,13 +811,13 @@ public class OldClock implements EntryPoint {
 
 				segment.animateCurrentMoveTo(angle);
 
-				canvas.beginPath();
+				context.beginPath();
 				{
-					canvas.moveTo(segment.currentStart.x, segment.currentStart.y);
-					canvas.lineTo(segment.currentEnd.x, segment.currentEnd.y);
-					canvas.closePath();
+					context.moveTo(segment.currentStart.x, segment.currentStart.y);
+					context.lineTo(segment.currentEnd.x, segment.currentEnd.y);
+					context.closePath();
 				}
-				canvas.stroke();
+				context.stroke();
 
 			}
 
