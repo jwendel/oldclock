@@ -61,7 +61,8 @@
   </dependencies>
   
   <build>
-    
+    <outputDirectory>${project.build.directory}/${project.build.finalName}/WEB-INF/classes</outputDirectory>
+
     <plugins>
       
       <!-- GWT Maven Plugin-->
@@ -99,6 +100,11 @@
           <mode>htmlunit</mode>
           <!-- Tests patterns -->
           <includes>**/Test*.java,**/*Test.java,**/*TestCase.java</includes>
+
+          <warSourceDirectory>${basedir}/src/main/webapp</warSourceDirectory>
+          <webappDirectory>${project.build.directory}/${project.build.finalName}</webappDirectory>
+          <hostedWebapp>${basedir}/src/main/webapp</hostedWebapp>
+
         </configuration>
       </plugin>
 
