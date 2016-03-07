@@ -4,6 +4,7 @@
 <module rename-to='oldclock'>
 	<inherits name='com.google.gwt.user.User' />
 	<inherits name='com.google.gwt.user.theme.standard.Standard' />
+	<inherits name="com.google.gwt.logging.Logging"/>
 	<entry-point class='com.nlworks.oldclock.client.OldClock' />
 	<source path='client' />
 	<source path='shared' />

@@ -1,6 +1,8 @@
 package com.nlworks.oldclock.client;
 
 import java.util.LinkedList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import com.google.gwt.canvas.client.Canvas;
 import com.google.gwt.canvas.dom.client.Context2d;
@@ -8,6 +10,8 @@ import com.google.gwt.core.client.EntryPoint;
 import com.google.gwt.dom.client.ImageElement;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
+import com.google.gwt.event.dom.client.ErrorEvent;
+import com.google.gwt.event.dom.client.ErrorHandler;
 import com.google.gwt.event.dom.client.LoadEvent;
 import com.google.gwt.event.dom.client.LoadHandler;
 import com.google.gwt.user.client.Timer;
@@ -23,9 +27,10 @@ import com.google.gwt.user.client.ui.TextBox;
  * Entry point classes define <code>onModuleLoad()</code>.
  */
 public class OldClock implements EntryPoint {
-
-	Canvas canvas = Canvas.createIfSupported();
-	Context2d context = canvas.getContext2d();
+	Logger logger = Logger.getLogger("NameOfYourLogger");
+	
+	Canvas canvas;
+	Context2d context;
 	//(1000, 500);
 	Label fpslabel = new Label();
 	boolean decrament = false;
@@ -37,6 +42,11 @@ public class OldClock implements EntryPoint {
 	ImageElement dotIcon;
 
 	public void onModuleLoad() {
+		canvas = Canvas.createIfSupported();
+		canvas.setSize("1000px", "500px");
+		canvas.setCoordinateSpaceWidth(1000);
+		canvas.setCoordinateSpaceHeight(500);
+		context = canvas.getContext2d();
 
 		context.setLineWidth(6);
 		context.setStrokeStyle("BLACK");
@@ -72,16 +82,25 @@ public class OldClock implements EntryPoint {
 	    
 	    Button b = new Button("Set Time");
 	    g.setWidget(4, 1, b);
-
 	    b.addClickHandler(new ClickHandler() {
 			
 			@Override
 			public void onClick(ClickEvent event) {
+				logger.log(Level.SEVERE, "Click!");
 			    Image img = new Image("circle.png");
 			    dotIcon = ImageElement.as(img.getElement());
+			    RootPanel.get().add(img);
+
+			    img.addErrorHandler(new ErrorHandler() {
+					@Override
+					public void onError(ErrorEvent event) {
+						logger.log(Level.SEVERE, "circle error: " + event);
+					}
+				});
 			    img.addLoadHandler(new LoadHandler() {
 					@Override
 					public void onLoad(LoadEvent event) {
+						logger.log(Level.SEVERE, "circle loaded");
 						int d = Integer.valueOf(days.getText());
 						int h = Integer.valueOf(hours.getText());
 						int m = Integer.valueOf(minutes.getText());
@@ -91,6 +110,7 @@ public class OldClock implements EntryPoint {
 							return;
 						
 						box.setVisible(false);
+						box.hide();
 
 						Draw draw = new Draw();
 						draw.scheduleRepeating(10);
@@ -105,15 +125,13 @@ public class OldClock implements EntryPoint {
 								decrament = true;
 							}
 						}).scheduleRepeating(delay);
+						logger.log(Level.SEVERE, "circle load complete");
 					}
 			    });
 			}
 		});
 	    
 	    box.show();
-	    
-
-
 	}
 
 	class Point {
@@ -353,7 +371,7 @@ public class OldClock implements EntryPoint {
 							break;
 
 						default:
-							System.out.println("Unknown number transition.  newNumber=" + newNumber + "  prevNumber=" + prevNumber);
+							logger.log(Level.SEVERE, "Unknown number transition.  newNumber=" + newNumber + "  prevNumber=" + prevNumber);
 					}
 					break;
 
@@ -370,7 +388,7 @@ public class OldClock implements EntryPoint {
 							break;
 
 						default:
-							System.out.println("Unknown number transition.  newNumber=" + newNumber + "  prevNumber=" + prevNumber);
+							logger.log(Level.SEVERE, "Unknown number transition.  newNumber=" + newNumber + "  prevNumber=" + prevNumber);
 					}
 					break;
 
@@ -389,7 +407,7 @@ public class OldClock implements EntryPoint {
 							break;
 
 						default:
-							System.out.println("Unknown number transition.  newNumber=" + newNumber + "  prevNumber=" + prevNumber);
+							logger.log(Level.SEVERE, "Unknown number transition.  newNumber=" + newNumber + "  prevNumber=" + prevNumber);
 					}
 					break;
 
@@ -409,7 +427,7 @@ public class OldClock implements EntryPoint {
 							break;
 
 						default:
-							System.out.println("Unknown number transition.  newNumber=" + newNumber + "  prevNumber=" + prevNumber);
+							logger.log(Level.SEVERE, "Unknown number transition.  newNumber=" + newNumber + "  prevNumber=" + prevNumber);
 					}
 					break;
 
@@ -423,7 +441,7 @@ public class OldClock implements EntryPoint {
 							break;
 
 						default:
-							System.out.println("Unknown number transition.  newNumber=" + newNumber + "  prevNumber=" + prevNumber);
+							logger.log(Level.SEVERE, "Unknown number transition.  newNumber=" + newNumber + "  prevNumber=" + prevNumber);
 					}
 					break;
 
@@ -440,7 +458,7 @@ public class OldClock implements EntryPoint {
 							break;
 
 						default:
-							System.out.println("Unknown number transition.  newNumber=" + newNumber + "  prevNumber=" + prevNumber);
+							logger.log(Level.SEVERE, "Unknown number transition.  newNumber=" + newNumber + "  prevNumber=" + prevNumber);
 					}
 					break;
 
@@ -456,7 +474,7 @@ public class OldClock implements EntryPoint {
 							break;
 
 						default:
-							System.out.println("Unknown number transition.  newNumber=" + newNumber + "  prevNumber=" + prevNumber);
+							logger.log(Level.SEVERE, "Unknown number transition.  newNumber=" + newNumber + "  prevNumber=" + prevNumber);
 					}
 					break;
 
@@ -472,7 +490,7 @@ public class OldClock implements EntryPoint {
 							break;
 
 						default:
-							System.out.println("Unknown number transition.  newNumber=" + newNumber + "  prevNumber=" + prevNumber);
+							logger.log(Level.SEVERE, "Unknown number transition.  newNumber=" + newNumber + "  prevNumber=" + prevNumber);
 					}
 					break;
 
@@ -483,7 +501,7 @@ public class OldClock implements EntryPoint {
 							break;
 
 						default:
-							System.out.println("Unknown number transition.  newNumber=" + newNumber + "  prevNumber=" + prevNumber);
+							logger.log(Level.SEVERE, "Unknown number transition.  newNumber=" + newNumber + "  prevNumber=" + prevNumber);
 					}
 					break;
 
@@ -495,12 +513,12 @@ public class OldClock implements EntryPoint {
 							break;
 
 						default:
-							System.out.println("Unknown number transition.  newNumber=" + newNumber + "  prevNumber=" + prevNumber);
+							logger.log(Level.SEVERE, "Unknown number transition.  newNumber=" + newNumber + "  prevNumber=" + prevNumber);
 					}
 					break;
 
 				default:
-					System.out.println("invalid number");
+					logger.log(Level.SEVERE, "invalid number");
 			}
 		}
 	}
@@ -618,7 +636,7 @@ public class OldClock implements EntryPoint {
 			// currentStart.y = baseEnd.y + ((OUTERLENGTH + PADDING_LENGTH) * (cos));
 			// }
 
-			// System.out.println(seg + "  " + (int) baseStart.x + "x" + (int) baseStart.y + "y   " + (int) currentEnd.x
+			// logger.log(Level.SEVERE, seg + "  " + (int) baseStart.x + "x" + (int) baseStart.y + "y   " + (int) currentEnd.x
 			// + "x" + (int) currentEnd.y + "y   " + (int) angle + "angle");
 		}
 
@@ -728,7 +746,7 @@ public class OldClock implements EntryPoint {
 
 			callcount++;
 
-//			 System.out.println("=== interation ===");
+//			 logger.log(Level.SEVERE, "=== interation ===");
 			long curtime = System.currentTimeMillis();
 			int timediff = (int) (curtime - time);
 			if (timediff >= delay && decrament) {
@@ -738,7 +756,7 @@ public class OldClock implements EntryPoint {
 				timediff = 0;
 				stage1 = true;
 				stage2 = false;
-//				 System.out.println("============ RESET ============");
+//				 logger.log(Level.SEVERE, "============ RESET ============");
 
 				myTime.decrement();
 				decrament = false;
