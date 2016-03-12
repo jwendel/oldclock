@@ -87,7 +87,7 @@ public class OldClock implements EntryPoint {
 			@Override
 			public void onClick(ClickEvent event) {
 				logger.log(Level.SEVERE, "Click!");
-			    Image img = new Image("circle.png");
+			    final Image img = new Image("circle.png");
 			    dotIcon = ImageElement.as(img.getElement());
 			    RootPanel.get().add(img);
 
@@ -101,6 +101,8 @@ public class OldClock implements EntryPoint {
 					@Override
 					public void onLoad(LoadEvent event) {
 						logger.log(Level.SEVERE, "circle loaded");
+						RootPanel.get().remove(img);
+
 						int d = Integer.valueOf(days.getText());
 						int h = Integer.valueOf(hours.getText());
 						int m = Integer.valueOf(minutes.getText());

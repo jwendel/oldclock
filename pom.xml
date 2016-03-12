@@ -104,6 +104,7 @@
           <warSourceDirectory>${basedir}/src/main/webapp</warSourceDirectory>
           <webappDirectory>${project.build.directory}/${project.build.finalName}</webappDirectory>
           <hostedWebapp>${basedir}/src/main/webapp</hostedWebapp>
+          
 
         </configuration>
       </plugin>
